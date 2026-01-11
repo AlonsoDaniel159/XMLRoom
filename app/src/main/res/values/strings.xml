@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">XML Room</string>
+
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancelar</string>
+
+    <string name="supporting_required">Obligatorio</string>
+
+    <string name="add_title">Añadir insecto</string>
+    <string name="add_btn_save">Guardar</string>
+    <string name="add_save_error">Error al guardar el insecto.</string>
+
+    <string name="title_activity_add">AddActivity</string>
+
+    <string name="hint_email">email</string>
+    <string name="hint_pin">pin</string>
+    <string name="hint_name">nombre</string>
+    <string name="hint_last_name">apellidos</string>
+
+
+    <string name="login_title">Iniciar sesión</string>
+    <string name="login_register_error">Error, revise sus datos.</string>
+    <string name="login_error">Email y/o pin incorrectos.</string>
+    <string name="login_btn_login">Entrar</string>
+    <string name="login_btn_register">Registrar</string>
+    <string name="title_activity_login">LoginActivity</string>
+
+    <string name="register_title">Registro de usuario</string>
+
+    <string name="title_activity_register">RegisterActivity</string>
+
+    <string name="main_efab_add">Añadir</string>
+    <string name="main_menu_import">Importar datos default</string>
+    <string name="main_import_success">Datos insertados con éxito</string>
+    <string name="main_import_error">Error al importar datos default</string>
+    <string name="main_msg_welcome">Hola %s</string>
+    <string name="register_error_is_registered">Email ya registrado.</string>
+    <string name="main_insect_cp_filter">Mis insectos</string>
+    <string name="main_insect_delete_success">Insecto eliminado.</string>
+    <string name="main_insect_delete_list_success">Insectos eliminados.</string>
+    <string name="main_insect_delete_error">No se pudo eliminar.</string>
+    <string name="main_insect_error_no_owner">Solo puedes eliminar tus insectos.</string>
+    <string name="dialog_msg_warning">Advertencia: Esta acción no podrá revertirse.</string>
+    <string name="dialog_delete_title">¿Eliminar insecto?</string>
+    <string name="dialog_delete_confirm">Eliminar</string>
+    <string name="main_menu_users">Ver otros creadores</string>
+    <string name="main_menu_delete_import">Borrar datos default</string>
+    <string name="main_menu_delete_my_data">Borrar usuario y datos</string>
+    <string name="main_menu_delete_my_insects">Eliminar todos mis insectos</string>
+    <string name="main_insect_delete_all_my_data_error">Error en la transacción.</string>
+    <string name="users_title">Usuarios</string>
+    <string name="title_activity_users">UsersActivity</string>
+</resources>
