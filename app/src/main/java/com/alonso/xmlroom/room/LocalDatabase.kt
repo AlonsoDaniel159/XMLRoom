@@ -4,8 +4,10 @@ import com.alonso.xmlroom.R
 import com.alonso.xmlroom.room.entity.Insect
 import com.alonso.xmlroom.room.entity.User
 import com.alonso.xmlroom.room.entity.UserAuth
+import com.alonso.xmlroom.utils.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 /**
@@ -27,34 +29,61 @@ class LocalDatabase {
      * Obtener todos los insectos
      */
     // Esta función ya no necesita ser 'suspend'. Simplemente devuelve el Flow de Room.
-    fun getAllInsects(): Flow<List<Insect>> {
-        return insectDao.getAllInsects() // Suponiendo que tienes un metodo así en tu DAO
+    fun getAllInsects(): Flow<UiState<List<Insect>>> = flow {
+        emit(UiState.Loading)  // Emitir estado de carga
+
+        try {
+            // Observar cambios en la base de datos
+            insectDao.getAllInsects().collect { insects ->
+                    emit(UiState.Success(insects))  // Emitir datos
+                }
+        } catch (e: Exception) {
+            emit(UiState.Error(e.message ?: "Error al cargar insectos"))  // Emitir error
+        }
     }
 
     /**
      * Obtener insectos del usuario autenticado
      */
-    fun getMyInsects(): Flow<List<Insect>> {
-        val userId = RoomApp.auth.id
-        return insectDao.getInsectByUserId(userId)
+    fun getInsectsByUser(): Flow<UiState<List<Insect>>> = flow {
+        emit(UiState.Loading)
+
+        try {
+            val userId = RoomApp.auth. id
+            insectDao.getInsectsByUserId(userId).collect { insects ->
+                    emit(UiState.Success(insects))
+                }
+        } catch (e: Exception) {
+            emit(UiState.Error(e.message ?: "Error al cargar tus insectos"))
+        }
     }
 
     /**
      * Agregar un insecto
      */
-    suspend fun addInsect(insect: Insect): Boolean = withContext(Dispatchers.IO) {
-        insect.userId = RoomApp.auth.id
-        val newId = insectDao.addInsect(insect)
-        return@withContext newId > 0 // Esto devuelve true o false
+    suspend fun addInsect(insect:  Insect): Result<Long> = withContext(Dispatchers. IO) {
+        runCatching {
+            insect.userId = RoomApp.auth.id
+            val newId = insectDao.addInsect(insect)
+            if (newId > 0) {
+                newId
+            } else {
+                throw Exception("No se pudo insertar el insecto")
+            }
+        }
     }
 
     /**
      * Eliminar un insecto
      */
     // --- Haz lo mismo para deleteInsect ---
-    suspend fun deleteInsect(insect: Insect) = withContext(Dispatchers.IO) {
-        val deletedRows = insectDao.deleteInsect(insect)
-        return@withContext deletedRows > 0
+    suspend fun deleteInsect(insect: Insect): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val deletedRows = insectDao.deleteInsect(insect)
+            if (deletedRows == 0) {
+                throw Exception("No se pudo eliminar el insecto")
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════════

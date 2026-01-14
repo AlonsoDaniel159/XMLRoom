@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.alonso.xmlroom.room.entity.Insect
+import com.alonso.xmlroom.room.entity.UserWithInsects
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,7 +19,11 @@ interface InsectDao {
 
     // 🔍 Obtener insectos de un usuario específico
     @Query("SELECT * FROM ${Constants.E_INSECTS} WHERE ${Constants.P_USER_ID} = :userId")
-    fun getInsectByUserId(userId: Long): Flow<List<Insect>>
+    fun getInsectsByUserId(userId: Long): Flow<List<Insect>>
+
+    @Transaction // Es importante para que la consulta se haga de forma atómica
+    @Query("SELECT * FROM ${Constants.E_USERS} WHERE id = :userId")
+    fun getUserWithInsects(userId: Long): Flow<UserWithInsects>
 
     // ➕ Insertar UN insecto
     @Upsert

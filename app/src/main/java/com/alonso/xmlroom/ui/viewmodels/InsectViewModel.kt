@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import com.alonso.xmlroom.utils.UiState
+
 /**
  * ViewModel para manejar la lógica de insectos
  * Sobrevive a rotaciones de pantalla
@@ -34,16 +36,13 @@ class InsectViewModel : ViewModel() {
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     // ══════════════════════════════════════════════
-    // LA MAGIA DE FLOW - La lista se actualiza sola
+    // StateFlow con UiState para lista de insectos
     // ══════════════════════════════════════════════
-
-    // 1. Usamos el Flow de LocalDatabase y lo convertimos en un StateFlow
-    // que la UI puede consumir de forma segura.
-    val insects: StateFlow<List<Insect>> = localDb.getAllInsects()
+    val insects: StateFlow<UiState<List<Insect>>> = localDb.getAllInsects()
         .stateIn(
             scope = viewModelScope, // Se ata al ciclo de vida del ViewModel
             started = SharingStarted.WhileSubscribed(5000L), // Inicia cuando hay un observador
-            initialValue = emptyList() // Valor inicial mientras carga
+            initialValue = UiState.Loading // Estado inicial Loading
         )
 
     /**
@@ -56,17 +55,16 @@ class InsectViewModel : ViewModel() {
                 return@launch
             }
 
-            _isLoading.value = true
-
             val insect = Insect(name = name, imgLocation = imgLocation)
-            val success = localDb.addInsect(insect)
 
-            if (success) {
-                _message.emit("Insecto agregado correctamente")
-            } else {
-                _message.emit("Error al agregar el insecto")
-            }
-            _isLoading.value = false
+            // Intentar agregar (usa kotlin.Result)
+            localDb.addInsect(insect)
+                .onSuccess { id ->
+                    _message.emit("Insecto agregado")
+                }
+                .onFailure { error ->
+                    _message.emit("Error:  ${error.message}")
+                }
         }
     }
 
@@ -75,15 +73,13 @@ class InsectViewModel : ViewModel() {
      */
     fun deleteInsect(insect: Insect) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val success = localDb.deleteInsect(insect)
-
-            if (success) {
-                _message.emit("${insect.name} eliminado")
-            } else {
-                _message.emit("Error al eliminar")
-            }
-            _isLoading.value = false
+            localDb.deleteInsect(insect)
+                .onSuccess {
+                    _message.emit("🗑${insect.name} eliminado")
+                }
+                .onFailure { error ->
+                    _message.emit("Error al eliminar: ${error.message}")
+                }
         }
     }
 }

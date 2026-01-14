@@ -19,6 +19,7 @@ import com.alonso.xmlroom.room.entity.Insect
 import com.alonso.xmlroom.room.entity.UserAuth
 import com.alonso.xmlroom.ui.InsectAdapter
 import com.alonso.xmlroom.ui.viewmodels.InsectViewModel
+import com.alonso.xmlroom.utils.UiState
 import kotlinx.coroutines.launch
 
 /**
@@ -67,31 +68,21 @@ class MainActivity : AppCompatActivity(), InsectActions {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Observar estado de la lista de insectos
                 launch {
-                    viewModel.insects.collect { insects ->
-                        adapter.submitList(insects)
-
-                        // Mostrar/ocultar mensaje vacío
-                        if (insects.isEmpty()) {
-                            binding.tvEmpty.visibility = View.VISIBLE
-                            binding.recyclerView.visibility = View.GONE
-                        } else {
-                            binding.tvEmpty.visibility = View.GONE
-                            binding.recyclerView.visibility = View.VISIBLE
+                    viewModel.insects.collect { uiState ->
+                        when (uiState) {
+                            is UiState.Loading -> showLoading()
+                            is UiState.Success -> showData(uiState.data)
+                            is UiState.Error -> showError(uiState.message)
                         }
                     }
                 }
 
+                // Observar mensajes (toasts)
                 launch {
                     viewModel.message.collect { message ->
                         Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                launch {
-                    viewModel.isLoading.collect { isLoading ->
-                        // Aquí podrías mostrar/ocultar un ProgressBar
-                        binding.btnAdd.isEnabled = !isLoading
                     }
                 }
             }
@@ -163,5 +154,43 @@ class MainActivity : AppCompatActivity(), InsectActions {
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    /**
+     * Mostrar indicador de carga
+     */
+    private fun showLoading() {
+        binding.recyclerView.visibility = View.GONE
+        binding.tvEmpty.visibility = View.GONE
+        // Si tienes un ProgressBar, muéstralo aquí:
+        // binding.progressBar.visibility = View.VISIBLE
+    }
+
+    /**
+     * Mostrar datos en el RecyclerView
+     */
+    private fun showData(insects: List<Insect>) {
+        // binding.progressBar.visibility = View.GONE
+
+        if (insects.isEmpty()) {
+            binding.tvEmpty.visibility = View.VISIBLE
+            binding.recyclerView.visibility = View.GONE
+        } else {
+            binding.tvEmpty.visibility = View.GONE
+            binding.recyclerView.visibility = View.VISIBLE
+            adapter.submitList(insects)
+        }
+    }
+
+    /**
+     * Mostrar error
+     */
+    private fun showError(message: String) {
+        // binding.progressBar.visibility = View.GONE
+        binding.recyclerView.visibility = View.GONE
+        binding.tvEmpty.visibility = View.VISIBLE
+        binding.tvEmpty.text = message  // Mostrar el mensaje de error
+
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 }
