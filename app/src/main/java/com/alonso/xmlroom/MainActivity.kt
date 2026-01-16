@@ -14,12 +14,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.alonso.xmlroom.databinding.ActivityMainBinding
-import com.alonso.xmlroom.room.RoomApp
+import com.alonso.xmlroom.room.LocalDatabase
 import com.alonso.xmlroom.room.entity.Insect
-import com.alonso.xmlroom.room.entity.UserAuth
 import com.alonso.xmlroom.ui.InsectAdapter
 import com.alonso.xmlroom.ui.viewmodels.InsectViewModel
+import com.alonso.xmlroom.ui.viewmodels.InsectViewModelFactory
 import com.alonso.xmlroom.utils.UiState
+import com.alonso.xmlroom.utils.UserPreferences
 import kotlinx.coroutines.launch
 
 /**
@@ -30,22 +31,34 @@ class MainActivity : AppCompatActivity(), InsectActions {
 
     private lateinit var binding: ActivityMainBinding
 
-    private val viewModel: InsectViewModel by viewModels()
+    private val viewModel: InsectViewModel by viewModels { InsectViewModelFactory(LocalDatabase()) }
 
     private val adapter by lazy { InsectAdapter(this) }
 
+    private var currentUserId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Simular usuario autenticado
-        RoomApp.auth = UserAuth(1, "Usuario Demo")
-
+        initializeUserId()
         setupRecyclerView()
-        setupObservers()  // 👈 CLAVE: Observar los LiveData
+        setupObservers()
         setupListeners()
+    }
+
+    private fun initializeUserId() {
+        lifecycleScope.launch {
+            currentUserId = UserPreferences(this@MainActivity).getUserId() ?: -1
+
+            if (currentUserId == -1L) {
+                redirectToLogin()
+                return@launch
+            }
+
+            viewModel.loadInsectsForUser(currentUserId)
+        }
     }
 
     private fun setupRecyclerView() {
@@ -125,7 +138,7 @@ class MainActivity : AppCompatActivity(), InsectActions {
                 val url = inputUrl.text.toString()
 
                 if (name.isNotBlank()) {
-                    viewModel.addInsect(name, url)
+                    viewModel.addInsect(name, url, currentUserId)
                 } else {
                     Toast.makeText(this, "El nombre es obligatorio", Toast.LENGTH_SHORT).show()
                 }
@@ -163,14 +176,14 @@ class MainActivity : AppCompatActivity(), InsectActions {
         binding.recyclerView.visibility = View.GONE
         binding.tvEmpty.visibility = View.GONE
         // Si tienes un ProgressBar, muéstralo aquí:
-        // binding.progressBar.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.VISIBLE
     }
 
     /**
      * Mostrar datos en el RecyclerView
      */
     private fun showData(insects: List<Insect>) {
-        // binding.progressBar.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
 
         if (insects.isEmpty()) {
             binding.tvEmpty.visibility = View.VISIBLE
@@ -192,5 +205,11 @@ class MainActivity : AppCompatActivity(), InsectActions {
         binding.tvEmpty.text = message  // Mostrar el mensaje de error
 
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun redirectToLogin() {
+        Toast.makeText(this, "No hay sesión", Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
     }
 }

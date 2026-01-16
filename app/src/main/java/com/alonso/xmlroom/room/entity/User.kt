@@ -24,8 +24,8 @@ data class User(
     @ColumnInfo(name = Constants.P_EMAIL)
     val email: String = "",
 
-    @ColumnInfo(name = Constants.P_PIN)
-    val pin: Int = 0
+    @ColumnInfo(name = Constants.P_PASSWORD)
+    val password: String = ""
 ) {
 
 }

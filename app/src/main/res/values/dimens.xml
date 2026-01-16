@@ -8,6 +8,7 @@
     <dimen name="common_padding_default">16dp</dimen>
     <dimen name="common_padding_middle">24dp</dimen>
     <dimen name="common_padding_large">32dp</dimen>
+    <dimen name="common_padding_large_medium">48dp</dimen>
     <dimen name="common_padding_x_large">64dp</dimen>
     <dimen name="main_grid_min_size">160dp</dimen>
 

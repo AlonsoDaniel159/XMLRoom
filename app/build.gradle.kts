@@ -57,6 +57,13 @@ dependencies {
     ksp(libs.androidx.room.compiler)                // Compilador (genera código)
     implementation(libs.androidx.room.coroutines)    // Soporte para Coroutines
 
+    // Preferences DataStore
+    implementation(libs.androidx.datastore.preferences) // O la última versión
+
+    implementation(libs.jbcrypt)
+
+    implementation(libs.androidx.core.splashscreen)
+
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.activity.ktx)

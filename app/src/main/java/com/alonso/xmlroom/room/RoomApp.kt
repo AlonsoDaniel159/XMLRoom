@@ -1,7 +1,6 @@
 package com.alonso.xmlroom.room
 
 import android.app.Application
-import com.alonso.xmlroom.room.entity.UserAuth
 
 /**
  * Application class
@@ -12,7 +11,6 @@ class RoomApp: Application() {
 
     companion object {
         lateinit var db: AppDataBase
-        lateinit var auth: UserAuth
     }
 
     override fun onCreate() {

@@ -20,5 +20,6 @@ object Constants {
     const val P_FIRST_NAME = "first_name"
     const val P_LAST_NAME = "last_name"
     const val P_EMAIL = "email"
-    const val P_PIN = "pin"
+
+    const val P_PASSWORD = "password"
 }

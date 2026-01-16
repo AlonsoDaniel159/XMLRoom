@@ -43,6 +43,8 @@ class InsectActivity : AppCompatActivity() {
 
             Glide.with(this)
                 .load(it.imgLocation)
+                .placeholder(android.R.drawable.ic_menu_gallery) // Imagen mientras carga
+                .error(android.R.drawable.stat_notify_error)    // Imagen si falla
                 .into(binding.ivInsect)
         }
     }

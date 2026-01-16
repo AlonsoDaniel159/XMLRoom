@@ -3,12 +3,12 @@ package com.alonso.xmlroom.room
 import com.alonso.xmlroom.R
 import com.alonso.xmlroom.room.entity.Insect
 import com.alonso.xmlroom.room.entity.User
-import com.alonso.xmlroom.room.entity.UserAuth
 import com.alonso.xmlroom.utils.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * Clase helper que simplifica el acceso a la BD
@@ -35,8 +35,8 @@ class LocalDatabase {
         try {
             // Observar cambios en la base de datos
             insectDao.getAllInsects().collect { insects ->
-                    emit(UiState.Success(insects))  // Emitir datos
-                }
+                emit(UiState.Success(insects))  // Emitir datos
+            }
         } catch (e: Exception) {
             emit(UiState.Error(e.message ?: "Error al cargar insectos"))  // Emitir error
         }
@@ -45,14 +45,14 @@ class LocalDatabase {
     /**
      * Obtener insectos del usuario autenticado
      */
-    fun getInsectsByUser(): Flow<UiState<List<Insect>>> = flow {
+    fun getInsectsByUser(userId: Long): Flow<UiState<List<Insect>>> = flow {
         emit(UiState.Loading)
 
         try {
-            val userId = RoomApp.auth. id
+            val userId = userId
             insectDao.getInsectsByUserId(userId).collect { insects ->
-                    emit(UiState.Success(insects))
-                }
+                emit(UiState.Success(insects))
+            }
         } catch (e: Exception) {
             emit(UiState.Error(e.message ?: "Error al cargar tus insectos"))
         }
@@ -61,9 +61,9 @@ class LocalDatabase {
     /**
      * Agregar un insecto
      */
-    suspend fun addInsect(insect:  Insect): Result<Long> = withContext(Dispatchers. IO) {
+    suspend fun addInsect(insect: Insect, userId: Long): Result<Long> = withContext(Dispatchers.IO) {
         runCatching {
-            insect.userId = RoomApp.auth.id
+            insect.userId = userId
             val newId = insectDao.addInsect(insect)
             if (newId > 0) {
                 newId
@@ -93,35 +93,34 @@ class LocalDatabase {
     /**
      * Registrar nuevo usuario
      */
-    suspend fun registerUser(
-        user: User,
-        onResult: (Boolean, Int) -> Unit
-    ) = withContext(Dispatchers.IO) {
-        // Verificar si el email ya existe
-        val existingUser = userDao.findUserByEmail(user.email)
-        if (existingUser != null) {
-            withContext(Dispatchers.Main) {
-                onResult(false, R.string.register_error_is_registered)
-            }
-        } else {
-            val newId = userDao.addUser(user)
-            withContext(Dispatchers.Main) {
-                onResult(newId > 0, R.string.register_error_is_registered)
+    suspend fun registerUser(user: User, onResult: (Boolean, Int) -> Unit) =
+        withContext(Dispatchers.IO) {
+            // Verificar si el email ya existe
+            val existingUser = userDao.getUserByEmail(user.email)
+            if (existingUser != null) {
+                withContext(Dispatchers.Main) {
+                    onResult(false, R.string.register_error_is_registered)
+                }
+            } else {
+                val newId = userDao.addUser(user)
+                withContext(Dispatchers.Main) {
+                    onResult(newId > 0, R.string.register_error_is_registered)
+                }
             }
         }
-    }
 
     /**
      * Login
      */
-    suspend fun login(
-        email: String,
-        pin: Int,
-        onResult: (UserAuth?) -> Unit
-    ) = withContext(Dispatchers.IO) {
-        val user = userDao.login(email, pin)
-        withContext(Dispatchers.Main) {
-            onResult(user)
+    suspend fun login(email: String, password: String): Result<User> = withContext(Dispatchers.IO) {
+        runCatching {
+            val user = userDao.getUserByEmail(email) ?: throw Exception("El usuario no existe")
+
+            if(BCrypt.checkpw(password, user.password)) {
+                user
+            } else {
+                throw Exception("Contraseña incorrecta")
+            }
         }
     }
 
