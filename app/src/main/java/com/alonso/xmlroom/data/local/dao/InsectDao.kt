@@ -1,13 +1,13 @@
-package com.alonso.xmlroom.room
+package com.alonso.xmlroom.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
-import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.alonso.xmlroom.room.entity.Insect
-import com.alonso.xmlroom.room.entity.UserWithInsects
+import com.alonso.xmlroom.data.local.entity.Insect
+import com.alonso.xmlroom.data.local.entity.UserWithInsects
+import com.alonso.xmlroom.data.local.Constants
 import kotlinx.coroutines.flow.Flow
 
 @Dao

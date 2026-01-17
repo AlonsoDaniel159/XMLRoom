@@ -1,11 +1,11 @@
-package com.alonso.xmlroom.room.entity
+package com.alonso.xmlroom.data.local.entity
 
 import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.alonso.xmlroom.room.Constants
+import com.alonso.xmlroom.data.local.Constants
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

@@ -1,4 +1,4 @@
-package com.alonso.xmlroom.room
+package com.alonso.xmlroom.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Transaction

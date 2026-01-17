@@ -1,4 +1,4 @@
-package com.alonso.xmlroom
+package com.alonso.xmlroom.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -13,25 +13,25 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.alonso.xmlroom.databinding.ActivityMainBinding
-import com.alonso.xmlroom.room.LocalDatabase
-import com.alonso.xmlroom.room.entity.Insect
-import com.alonso.xmlroom.ui.InsectAdapter
+import com.alonso.xmlroom.databinding.ActivityInsectsBinding
+import com.alonso.xmlroom.data.local.entity.Insect
+import com.alonso.xmlroom.ui.adapters.InsectAdapter
 import com.alonso.xmlroom.ui.viewmodels.InsectViewModel
 import com.alonso.xmlroom.ui.viewmodels.InsectViewModelFactory
 import com.alonso.xmlroom.utils.UiState
-import com.alonso.xmlroom.utils.UserPreferences
+import com.alonso.xmlroom.data.preferences.UserPreferences
+import com.alonso.xmlroom.data.repository.InsectRepository
 import kotlinx.coroutines.launch
 
 /**
  * MainActivity SIN ViewModel
  * Maneja directamente la base de datos
  */
-class MainActivity : AppCompatActivity(), InsectActions {
+class InsectsActivity : AppCompatActivity(), InsectActions {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityInsectsBinding
 
-    private val viewModel: InsectViewModel by viewModels { InsectViewModelFactory(LocalDatabase()) }
+    private val viewModel: InsectViewModel by viewModels { InsectViewModelFactory(InsectRepository())}
 
     private val adapter by lazy { InsectAdapter(this) }
 
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity(), InsectActions {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityInsectsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         initializeUserId()
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity(), InsectActions {
 
     private fun initializeUserId() {
         lifecycleScope.launch {
-            currentUserId = UserPreferences(this@MainActivity).getUserId() ?: -1
+            currentUserId = UserPreferences(this@InsectsActivity).getUserId() ?: -1
 
             if (currentUserId == -1L) {
                 redirectToLogin()
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity(), InsectActions {
                 StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
 
             layoutManager = staggeredGridLayoutManager
-            adapter = this@MainActivity.adapter
+            adapter = this@InsectsActivity.adapter
         }
     }
 
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity(), InsectActions {
                 // Observar mensajes (toasts)
                 launch {
                     viewModel.message.collect { message ->
-                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@InsectsActivity, message, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity(), InsectActions {
     }
 
     override fun onInsectClicked(insect: Insect) {
-        val intent = Intent(this, InsectActivity::class.java)
+        val intent = Intent(this, DetailsActivity::class.java)
         intent.putExtra("EXTRA_INSECT", insect)
         startActivity(intent)
     }
@@ -208,8 +208,10 @@ class MainActivity : AppCompatActivity(), InsectActions {
     }
 
     private fun redirectToLogin() {
-        Toast.makeText(this, "No hay sesión", Toast.LENGTH_SHORT).show()
-        startActivity(Intent(this, LoginActivity::class.java))
+        Toast.makeText(this, "No hay sesión activa", Toast.LENGTH_SHORT).show()
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK  // ✅ Agregar
+        startActivity(intent)
         finish()
     }
 }

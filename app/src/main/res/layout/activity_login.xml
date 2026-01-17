@@ -8,7 +8,7 @@
     android:paddingHorizontal="@dimen/common_padding_middle"
     android:paddingVertical="@dimen/common_padding_large_medium"
     android:orientation="vertical"
-    tools:context=".LoginActivity">
+    tools:context=".ui.activities.LoginActivity">
 
     <TextView
         android:layout_width="match_parent"

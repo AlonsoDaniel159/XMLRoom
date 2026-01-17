@@ -1,13 +1,14 @@
-package com.alonso.xmlroom.ui
+package com.alonso.xmlroom.ui.adapters
 
+import android.R
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.alonso.xmlroom.InsectActions
+import com.alonso.xmlroom.data.local.entity.Insect
 import com.alonso.xmlroom.databinding.ItemInsectBinding
-import com.alonso.xmlroom.room.entity.Insect
+import com.alonso.xmlroom.ui.activities.InsectActions
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 
@@ -29,8 +30,8 @@ class InsectAdapter(private val listener: InsectActions) : ListAdapter<Insect, I
 
                 Glide.with(ivInsect.context) // Es mejor usar el contexto de la vista
                     .load(insect.imgLocation)
-                    .placeholder(android.R.drawable.ic_menu_gallery) // Imagen mientras carga
-                    .error(android.R.drawable.stat_notify_error)    // Imagen si falla
+                    .placeholder(R.drawable.ic_menu_gallery) // Imagen mientras carga
+                    .error(R.drawable.stat_notify_error)    // Imagen si falla
                     .diskCacheStrategy(DiskCacheStrategy.ALL)       // Cache inteligente
                     .into(ivInsect)
 

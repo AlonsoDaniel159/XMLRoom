@@ -2,8 +2,8 @@ package com.alonso.xmlroom.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alonso.xmlroom.room.LocalDatabase
-import com.alonso.xmlroom.utils.UserPreferences
+import com.alonso.xmlroom.data.preferences.UserPreferences
+import com.alonso.xmlroom.data.repository.UserRepository
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val userPreferences: UserPreferences,
-    private val localDb: LocalDatabase): ViewModel() {
+    private val repository: UserRepository): ViewModel() {
 
     private val _navigateToHome  = MutableSharedFlow<Unit>(
         replay = 0,                // No repetir eventos pasados
@@ -30,7 +30,7 @@ class LoginViewModel(
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            localDb.login(email, password)
+            repository.login(email, password)
                 .onSuccess { user ->
                     userPreferences.saveUserId(user.id)
                     _navigateToHome.emit(Unit)

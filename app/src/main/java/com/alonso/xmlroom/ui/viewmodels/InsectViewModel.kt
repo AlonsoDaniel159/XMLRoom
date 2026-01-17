@@ -2,8 +2,8 @@ package com.alonso.xmlroom.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alonso.xmlroom.room.LocalDatabase
-import com.alonso.xmlroom.room.entity.Insect
+import com.alonso.xmlroom.data.local.entity.Insect
+import com.alonso.xmlroom.data.repository.InsectRepository
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -19,7 +19,7 @@ import com.alonso.xmlroom.utils.UiState
  * ViewModel para manejar la lógica de insectos
  * Sobrevive a rotaciones de pantalla
  */
-class InsectViewModel(private val localDb: LocalDatabase) : ViewModel() {
+class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
 
     private val _message = MutableSharedFlow<String>(
         replay = 0,                // No repetir eventos pasados
@@ -31,7 +31,7 @@ class InsectViewModel(private val localDb: LocalDatabase) : ViewModel() {
     // ══════════════════════════════════════════════
     // StateFlow con UiState para lista de insectos
     // ══════════════════════════════════════════════
-    val insects: StateFlow<UiState<List<Insect>>> = localDb.getAllInsects()
+    val insects: StateFlow<UiState<List<Insect>>> = repository.getAllInsects()
         .stateIn(
             scope = viewModelScope, // Se ata al ciclo de vida del ViewModel
             started = SharingStarted.WhileSubscribed(5000L), // Inicia cuando hay un observador
@@ -51,7 +51,7 @@ class InsectViewModel(private val localDb: LocalDatabase) : ViewModel() {
             val insect = Insect(name = name, imgLocation = imgLocation)
 
             // Intentar agregar (usa kotlin.Result)
-            localDb.addInsect(insect, userId)
+            repository.addInsect(insect, userId)
                 .onSuccess { _message.emit("Insecto agregado") }
                 .onFailure { error -> _message.emit("Error:  ${error.message}") }
         }
@@ -62,7 +62,7 @@ class InsectViewModel(private val localDb: LocalDatabase) : ViewModel() {
      */
     fun deleteInsect(insect: Insect) {
         viewModelScope.launch {
-            localDb.deleteInsect(insect)
+            repository.deleteInsect(insect)
                 .onSuccess {
                     _message.emit("🗑${insect.name} eliminado")
                 }

@@ -1,4 +1,4 @@
-package com.alonso.xmlroom
+package com.alonso.xmlroom.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,10 +10,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.alonso.xmlroom.databinding.ActivityLoginBinding
-import com.alonso.xmlroom.room.LocalDatabase
 import com.alonso.xmlroom.ui.viewmodels.LoginViewModel
 import com.alonso.xmlroom.ui.viewmodels.LoginViewModelFactory
-import com.alonso.xmlroom.utils.UserPreferences
+import com.alonso.xmlroom.data.preferences.UserPreferences
+import com.alonso.xmlroom.data.repository.UserRepository
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import kotlin.getValue
@@ -23,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
 
     private val viewModel: LoginViewModel by viewModels{
-        LoginViewModelFactory(UserPreferences(this),LocalDatabase())
+        LoginViewModelFactory(UserPreferences(this), UserRepository())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +51,7 @@ class LoginActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.navigateToHome.collect {
-                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        val intent = Intent(this@LoginActivity, InsectsActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()

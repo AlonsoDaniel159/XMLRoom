@@ -1,10 +1,8 @@
-package com.alonso.xmlroom
+package com.alonso.xmlroom.ui.activities
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.alonso.xmlroom.databinding.ActivityRegisterBinding
 
 class RegisterActivity : AppCompatActivity() {

@@ -1,4 +1,4 @@
-package com.alonso.xmlroom.room.entity
+package com.alonso.xmlroom.data.local.entity
 
 import androidx.room.Embedded
 import androidx.room.Relation

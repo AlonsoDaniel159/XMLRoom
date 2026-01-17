@@ -1,4 +1,4 @@
-package com.alonso.xmlroom.utils
+package com.alonso.xmlroom.data.preferences
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

@@ -1,10 +1,10 @@
-package com.alonso.xmlroom.room.entity
+package com.alonso.xmlroom.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.alonso.xmlroom.room.Constants
+import com.alonso.xmlroom.data.local.Constants
 
 @Entity(
     tableName = Constants.E_USERS,

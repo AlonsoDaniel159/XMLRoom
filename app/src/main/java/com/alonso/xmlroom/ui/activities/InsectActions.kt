@@ -1,6 +1,6 @@
-package com.alonso.xmlroom
+package com.alonso.xmlroom.ui.activities
 
-import com.alonso.xmlroom.room.entity.Insect
+import com.alonso.xmlroom.data.local.entity.Insect
 
 interface InsectActions {
     fun onInsectLongPressed(insect: Insect)

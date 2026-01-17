@@ -1,4 +1,4 @@
-package com.alonso.xmlroom.room
+package com.alonso.xmlroom.data.local
 
 object Constants {
     // Database
