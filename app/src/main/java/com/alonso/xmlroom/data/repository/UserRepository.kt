@@ -17,21 +17,21 @@ class UserRepository {
     /**
      * Registrar nuevo usuario
      */
-    suspend fun registerUser(user: User, onResult: (Boolean, Int) -> Unit) =
-        withContext(Dispatchers.IO) {
-            // Verificar si el email ya existe
-            val existingUser = userDao.getUserByEmail(user.email)
-            if (existingUser != null) {
-                withContext(Dispatchers.Main) {
-                    onResult(false, R.string.register_error_is_registered)
-                }
-            } else {
-                val newId = userDao.addUser(user)
-                withContext(Dispatchers.Main) {
-                    onResult(newId > 0, R.string.register_error_is_registered)
-                }
+    suspend fun registerUser(user: User): Result<User> = withContext(Dispatchers.IO) {
+        runCatching {
+            if (userDao.getUserByEmail(user.email) != null) {
+                throw Exception("Ya existe un usuario con ese email")
             }
+
+            val hashedPassword = BCrypt.hashpw(user.password, BCrypt.gensalt())
+            val userToSave = user.copy(password = hashedPassword)
+
+            if (userDao.addUser(userToSave) <= 0) {
+                throw Exception("No se pudo insertar el usuario")
+            }
+            user
         }
+    }
 
     /**
      * Login
@@ -40,42 +40,18 @@ class UserRepository {
         runCatching {
             val user = userDao.getUserByEmail(email) ?: throw Exception("El usuario no existe")
 
-            if(BCrypt.checkpw(password, user.password)) {
-                user
-            } else {
+            if (!BCrypt.checkpw(password, user.password)) {
                 throw Exception("Contraseña incorrecta")
             }
-        }
-    }
-
-    /**
-     * Obtener todos los usuarios
-     */
-    suspend fun getAllUsers(onResult: (List<User>) -> Unit) = withContext(Dispatchers.IO) {
-        val users = userDao.getAllUsers()
-        withContext(Dispatchers.Main) {
-            onResult(users)
+            user
         }
     }
 
     // TRANSACCIONES
 
-    /**
-     * Eliminar usuario y todos sus datos
-     */
-    suspend fun deleteUserAndData(
-        userId: Long,
-        onResult: (Boolean) -> Unit
-    ) = withContext(Dispatchers.IO) {
-        try {
+    suspend fun deleteUserAndData(userId: Long): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
             transactionDao.deleteUserAndData(userId)
-            withContext(Dispatchers.Main) {
-                onResult(true)
-            }
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                onResult(false)
-            }
         }
     }
 }

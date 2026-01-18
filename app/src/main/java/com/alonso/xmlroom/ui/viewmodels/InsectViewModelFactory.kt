@@ -7,7 +7,7 @@ import com.alonso.xmlroom.data.repository.InsectRepository
 class InsectViewModelFactory(private val repository: InsectRepository): ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(InsectViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return InsectViewModel(repository) as T
         }

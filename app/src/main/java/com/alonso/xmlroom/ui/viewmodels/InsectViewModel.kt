@@ -1,5 +1,6 @@
 package com.alonso.xmlroom.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonso.xmlroom.data.local.entity.Insect
@@ -38,6 +39,14 @@ class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
             initialValue = UiState.Loading // Estado inicial Loading
         )
 
+    fun getAllInsects() {
+
+    }
+
+    fun getInsectsByUser() {
+
+    }
+
     /**
      * Agregar un nuevo insecto
      */
@@ -53,7 +62,10 @@ class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
             // Intentar agregar (usa kotlin.Result)
             repository.addInsect(insect, userId)
                 .onSuccess { _message.emit("Insecto agregado") }
-                .onFailure { error -> _message.emit("Error:  ${error.message}") }
+                .onFailure { error ->
+                    Log.e("approom","Error: ${error.message}")
+                    _message.emit("Error:  ${error.message}")
+                }
         }
     }
 
@@ -67,6 +79,7 @@ class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
                     _message.emit("🗑${insect.name} eliminado")
                 }
                 .onFailure { error ->
+                    Log.e("approom","Error: ${error.message}")
                     _message.emit("Error al eliminar: ${error.message}")
                 }
         }

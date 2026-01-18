@@ -3,7 +3,7 @@ package com.alonso.xmlroom.data.local
 object Constants {
     // Database
     const val DB_NAME = "db_insects_app"
-    const val DB_VERSION = 1
+    const val DB_VERSION = 2
 
     // Entity Names (Nombres de tablas)
     const val E_INSECTS = "insects_table"

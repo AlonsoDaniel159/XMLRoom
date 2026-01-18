@@ -16,7 +16,10 @@
     <string name="hint_password">Password</string>
     <string name="hint_name">Name</string>
     <string name="hint_last_name">Lastname</string>
+    <string name="hint_confirm_password">Confirmar contraseña</string>
+    <string name="error_password_mismatch">Las contraseñas no coinciden</string>
 
+    <string name="register_already_have_account">¿Ya tienes cuenta?</string>
 
     <string name="login_title">Iniciar sesión</string>
     <string name="login_register_error">Error, revise sus datos.</string>

@@ -19,4 +19,30 @@
         <!-- Tema al que cambiar después del splash -->
         <item name="postSplashScreenTheme">@style/Theme.XMLRoom</item>
     </style>
+    <!-- En res/values/themes.xml, dentro de la etiqueta <resources> -->
+
+    <!-- Estilo para el PopupMenu -->
+    <style name="Widget.App.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <!-- Tamaño del texto -->
+        <item name="android:textSize">14sp</item>  <!-- ✅ Reducir tamaño (por defecto es 16sp) -->
+
+        <!-- Color del texto -->
+        <item name="android:textColor">@color/black</item>
+
+        <!-- Padding interno -->
+        <item name="android:dropDownVerticalOffset">8dp</item>  <!-- ✅ Offset vertical (baja el menú) -->
+        <item name="android:dropDownHorizontalOffset">0dp</item>
+
+        <!-- Elevación -->
+        <item name="android:popupElevation">8dp</item>
+
+        <!-- ✅ CLAVE:   Offset vertical (baja el menú) -->
+        <item name="android:dropDownVerticalOffset">8dp</item>  <!-- Aumenta esto si quieres más espacio -->
+
+        <!-- ✅ Offset horizontal (mueve a la derecha/izquierda) -->
+        <item name="android:dropDownHorizontalOffset">0dp</item>  <!-- Negativo = izquierda, positivo = derecha -->
+
+    </style>
+
+
 </resources>

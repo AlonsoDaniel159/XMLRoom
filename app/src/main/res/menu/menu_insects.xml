@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_profile"
+        android:title="Perfil"
+        app:showAsAction="never" />
+
+    <!-- Opción 2: Configuración -->
+    <item
+        android:id="@+id/action_settings"
+        android:title="Configuración"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_import_data"
+        android:title="Importar datos default"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_logout"
+        android:title="Cerrar sesión"
+        app:showAsAction="never" />
+</menu>

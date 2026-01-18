@@ -2,6 +2,10 @@ package com.alonso.xmlroom.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -9,10 +13,12 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.alonso.xmlroom.R
 import com.alonso.xmlroom.databinding.ActivityInsectsBinding
 import com.alonso.xmlroom.data.local.entity.Insect
 import com.alonso.xmlroom.ui.adapters.InsectAdapter
@@ -42,13 +48,19 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
         binding = ActivityInsectsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initializeUserId()
+        setupUI()
         setupRecyclerView()
         setupObservers()
         setupListeners()
     }
 
-    private fun initializeUserId() {
+    private fun setupUI() {
+        setSupportActionBar(binding.toolbar)
+        initializeUser()
+    }
+
+
+    private fun initializeUser() {
         lifecycleScope.launch {
             currentUserId = UserPreferences(this@InsectsActivity).getUserId() ?: -1
 
@@ -106,6 +118,51 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
         binding.btnAdd.setOnClickListener {
             showAddDialog()
         }
+
+        binding.toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_import_data -> {
+                    // Lógica para importar datos
+                    Toast.makeText(this, "Importando datos...", Toast.LENGTH_SHORT).show()
+                    true // Indica que el evento ha sido manejado
+                }
+                R.id.action_logout -> {
+                    // Lógica para cerrar sesión
+                    // viewModel.logout()
+                    Toast.makeText(this, "Cerrando sesión...", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        binding.btnAllInsects.setOnClickListener {
+            if (! binding.btnAllInsects.isChecked) {
+                binding.btnAllInsects.isChecked = true
+                return@setOnClickListener
+            }
+
+            // Deseleccionar el otro botón
+            binding.btnMyInsects.isChecked = false
+
+            // Mostrar todos los insectos
+            viewModel.getAllInsects()
+        }
+
+        // ✅ Botón "Mis insectos"
+        binding.btnMyInsects.setOnClickListener {
+            if (!binding.btnMyInsects.isChecked) {
+                binding.btnMyInsects.isChecked = true
+                return@setOnClickListener
+            }
+
+            // Deseleccionar el otro botón
+            binding.btnAllInsects.isChecked = false
+
+            // Filtrar por usuario
+            viewModel.getInsectsByUser()
+        }
+
     }
 
     private fun showAddDialog() {
@@ -213,5 +270,53 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK  // ✅ Agregar
         startActivity(intent)
         finish()
+    }
+
+
+    //===========MENU===========
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R. menu.menu_insects, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        // Cambiar color del "Cerrar sesión" a rojo
+        val logoutItem = menu.findItem(R.id.action_logout)
+        val spannable = SpannableString(logoutItem.title)
+        spannable.setSpan(
+            ForegroundColorSpan(ContextCompat.getColor(this, android.R. color.holo_red_dark)),
+            0,
+            spannable.length,
+            0
+        )
+        logoutItem. title = spannable
+
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_profile -> {
+                Toast.makeText(this, "Perfil", Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            R.id.action_settings -> {
+                Toast.makeText(this, "Configuración", Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            R.id.action_import_data -> {
+                Toast.makeText(this, "Importando data", Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            R.id.action_logout -> {
+                Toast.makeText(this, "Cerrando sesión...", Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

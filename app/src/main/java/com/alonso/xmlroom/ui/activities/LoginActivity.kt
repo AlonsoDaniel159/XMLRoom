@@ -14,6 +14,7 @@ import com.alonso.xmlroom.ui.viewmodels.LoginViewModel
 import com.alonso.xmlroom.ui.viewmodels.LoginViewModelFactory
 import com.alonso.xmlroom.data.preferences.UserPreferences
 import com.alonso.xmlroom.data.repository.UserRepository
+import com.alonso.xmlroom.ui.events.RegisterEvent
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import kotlin.getValue
@@ -22,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
 
-    private val viewModel: LoginViewModel by viewModels{
+    private val viewModel: LoginViewModel by viewModels {
         LoginViewModelFactory(UserPreferences(this), UserRepository())
     }
 
@@ -43,18 +44,20 @@ class LoginActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 // Observar mensajes (toasts)
-                launch {
-                    viewModel.message.collect { message ->
-                        errorLogin(message)
-                    }
-                }
+
 
                 launch {
-                    viewModel.navigateToHome.collect {
-                        val intent = Intent(this@LoginActivity, InsectsActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        startActivity(intent)
-                        finish()
+                    viewModel.event.collect { event ->
+                        when (event) {
+                            is RegisterEvent.Success -> {}
+                            is RegisterEvent.Error -> {
+                                errorLogin(event.message)
+                            }
+
+                            is RegisterEvent.NavigateToHome -> {
+                                navigateToHome()
+                            }
+                        }
                     }
                 }
             }
@@ -104,6 +107,13 @@ class LoginActivity : AppCompatActivity() {
 
     private fun errorLogin(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+    }
+
+    private fun navigateToHome() {
+        val intent = Intent(this@LoginActivity, InsectsActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
 }

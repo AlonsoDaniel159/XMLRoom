@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Sin borde cuando está seleccionado -->
+    <item android:color="@android:color/transparent" android:state_checked="true" />
+
+    <!-- Borde teal cuando está normal -->
+    <item android:color="@color/teal_700" />
+</selector>
