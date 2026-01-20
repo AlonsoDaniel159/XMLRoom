@@ -33,18 +33,11 @@ class LoginViewModel(
         }
     }
 
-    fun logout() {
-        viewModelScope.launch {
-            userPreferences.clearSession()
-            _event.emit(RegisterEvent.Success("Sesión cerrada"))
-        }
-    }
-
     fun register(user: User) {
         viewModelScope.launch {
             repository.registerUser(user)
-                .onSuccess { user ->
-                    userPreferences.saveUserId(user.id)
+                .onSuccess { userId ->
+                    userPreferences.saveUserId(userId)
                     _event.emit(RegisterEvent.NavigateToHome)
                 }
                 .onFailure { error ->

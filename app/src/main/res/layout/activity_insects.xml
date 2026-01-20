@@ -19,84 +19,84 @@
         app:titleTextAppearance="?attr/textAppearanceTitleLarge"
         app:titleTextColor="@android:color/white" />
 
-    <LinearLayout
-        android:id="@+id/llFilters"
+    <!-- Tus botones de filtro se mantienen igual -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleGroup"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="6dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnMyInsects"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="6dp"
-            android:layout_marginVertical="@dimen/common_padding_min"
-            android:checkable="true"
-            android:checked="true"
-            android:text="@string/main_insect_cp_filter"
-            android:textColor="@color/button_filter_text"
-            app:backgroundTint="@color/button_filter_background"
-            app:cornerRadius="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toolbar"
-            app:strokeColor="@color/button_filter_stroke" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAllInsects"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="@dimen/common_padding_min"
-            android:checkable="true"
-            android:text="Todos"
-            android:textColor="@color/button_filter_text"
-            app:backgroundTint="@color/button_filter_background"
-            app:cornerRadius="8dp"
-            app:strokeColor="@color/button_filter_stroke" />
-
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        app:checkedButton="@id/btnAllInsects"
+        app:singleSelection="true">
+
+        <Button
+            android:id="@+id/btnAllInsects"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Todos los insectos"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnMyInsects"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mis Insectos"
+            android:textAllCaps="false" />
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!--    <ProgressBar-->
+    <!--        android:id="@+id/progressBar"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:visibility="gone"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toTopOf="parent"-->
+    <!--        tools:visibility="visible" />-->
 
 
-    <!-- RecyclerView para mostrar la lista -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <!--    &lt;!&ndash; RecyclerView para mostrar la lista &ndash;&gt;-->
+    <!--    <androidx.recyclerview.widget.RecyclerView-->
+    <!--        android:id="@+id/recyclerView"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="0dp"-->
+    <!--        android:padding="6dp"-->
+    <!--        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
+    <!--        app:layout_constraintBottom_toTopOf="@id/btnAdd"-->
+    <!--        app:layout_constraintTop_toBottomOf="@id/llFilters"-->
+    <!--        tools:listitem="@layout/item_insect" />-->
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:padding="6dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/btnAdd"
-        app:layout_constraintTop_toBottomOf="@id/llFilters"
-        tools:listitem="@layout/item_insect" />
+        app:layout_constraintTop_toBottomOf="@id/toggleGroup"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_weight="1"/>
 
     <!-- Mensaje cuando no hay datos -->
-    <TextView
-        android:id="@+id/tvEmpty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="No hay insectos registrados"
-        android:textSize="16sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+<!--    <TextView-->
+<!--        android:id="@+id/tvEmpty"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="No hay insectos registrados"-->
+<!--        android:textSize="16sp"-->
+<!--        android:visibility="gone"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
 
     <!-- Botón flotante para agregar -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton

@@ -64,6 +64,8 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
 
+    implementation(libs.androidx.fragment.ktx) // fragments
+
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.activity.ktx)

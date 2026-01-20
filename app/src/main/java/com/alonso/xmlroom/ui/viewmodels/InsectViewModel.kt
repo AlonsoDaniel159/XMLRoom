@@ -15,12 +15,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 import com.alonso.xmlroom.utils.UiState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 /**
  * ViewModel para manejar la lógica de insectos
  * Sobrevive a rotaciones de pantalla
  */
-class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
+class InsectViewModel(
+    private val repository: InsectRepository,
+    userId: Long
+) : ViewModel() {
+    private val _filterType = MutableStateFlow(FilterType.USER)
 
     private val _message = MutableSharedFlow<String>(
         replay = 0,                // No repetir eventos pasados
@@ -29,22 +36,55 @@ class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
     )
     val message: SharedFlow<String> = _message.asSharedFlow()
 
-    // ══════════════════════════════════════════════
-    // StateFlow con UiState para lista de insectos
-    // ══════════════════════════════════════════════
-    val insects: StateFlow<UiState<List<Insect>>> = repository.getAllInsects()
+    //Enum para los tipos de filtro
+    enum class FilterType {
+        ALL, USER
+    }
+
+    // Flujo privado para todos los insectos, cacheado permanentemente mientras el ViewModel viva.
+    val allInsects: StateFlow<UiState<List<Insect>>> = repository.getAllInsects()
         .stateIn(
-            scope = viewModelScope, // Se ata al ciclo de vida del ViewModel
-            started = SharingStarted.WhileSubscribed(5000L), // Inicia cuando hay un observador
-            initialValue = UiState.Loading // Estado inicial Loading
+            scope = viewModelScope,
+            // SharingStarted.Eagerly inicia inmediatamente y nunca se detiene.
+            // Es bueno para datos que quieres tener siempre listos.
+            started = SharingStarted.Eagerly,
+            initialValue = UiState.Loading
         )
 
-    fun getAllInsects() {
+    // Flujo privado para los insectos del usuario, también cacheado.
+    val userInsects: StateFlow<UiState<List<Insect>>> = repository.getInsectsByUser(userId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = UiState.Loading
+        )
 
+    // Este es el StateFlow que tu UI observará.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val insects: StateFlow<UiState<List<Insect>>> = _filterType
+        .flatMapLatest { filterType ->
+            when (filterType) {
+                FilterType.ALL -> allInsects
+                FilterType.USER -> userInsects
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = allInsects.value
+        )
+
+    // La función para cambiar el filtro no cambia.
+    fun setFilter(filterType: FilterType) {
+        _filterType.value = filterType
+    }
+
+    fun getAllInsects() {
+        _filterType.value = FilterType.ALL
     }
 
     fun getInsectsByUser() {
-
+        _filterType.value = FilterType.USER
     }
 
     /**
@@ -57,13 +97,13 @@ class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
                 return@launch
             }
 
-            val insect = Insect(name = name, imgLocation = imgLocation)
+            val insect = Insect(name = name, imgLocation = imgLocation, userId = userId)
 
             // Intentar agregar (usa kotlin.Result)
-            repository.addInsect(insect, userId)
+            repository.addInsect(insect)
                 .onSuccess { _message.emit("Insecto agregado") }
                 .onFailure { error ->
-                    Log.e("approom","Error: ${error.message}")
+                    Log.e("approom", "Error: ${error.message}")
                     _message.emit("Error:  ${error.message}")
                 }
         }
@@ -79,15 +119,9 @@ class InsectViewModel(private val repository: InsectRepository) : ViewModel() {
                     _message.emit("🗑${insect.name} eliminado")
                 }
                 .onFailure { error ->
-                    Log.e("approom","Error: ${error.message}")
+                    Log.e("approom", "Error: ${error.message}")
                     _message.emit("Error al eliminar: ${error.message}")
                 }
-        }
-    }
-
-    fun loadInsectsForUser(currentUserId: Long) {
-        viewModelScope.launch {
-            _message.emit("Cargando insectos del usuario $currentUserId")
         }
     }
 }

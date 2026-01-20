@@ -17,7 +17,7 @@ class UserRepository {
     /**
      * Registrar nuevo usuario
      */
-    suspend fun registerUser(user: User): Result<User> = withContext(Dispatchers.IO) {
+    suspend fun registerUser(user: User): Result<Long> = withContext(Dispatchers.IO) {
         runCatching {
             if (userDao.getUserByEmail(user.email) != null) {
                 throw Exception("Ya existe un usuario con ese email")
@@ -26,10 +26,11 @@ class UserRepository {
             val hashedPassword = BCrypt.hashpw(user.password, BCrypt.gensalt())
             val userToSave = user.copy(password = hashedPassword)
 
-            if (userDao.addUser(userToSave) <= 0) {
+            val userId = userDao.addUser(userToSave)
+            if (userId <= 0) {
                 throw Exception("No se pudo insertar el usuario")
             }
-            user
+            userId
         }
     }
 

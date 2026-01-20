@@ -1,0 +1,39 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.fragments.InsectListFragment">
+
+    <!-- RecyclerView para mostrar la lista de insectos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="4dp"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.StaggeredGridLayoutManager"
+        tools:listitem="@layout/item_insect"
+        tools:visibility="visible" />
+
+    <!-- Barra de progreso que se muestra mientras se carga -->
+    <ProgressBar
+        android:id="@+id/progressBarFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- Mensaje opcional para cuando la lista está vacía -->
+    <TextView
+        android:id="@+id/tvEmptyFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="No hay insectos para mostrar"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+</FrameLayout>

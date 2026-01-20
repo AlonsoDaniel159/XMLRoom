@@ -49,9 +49,8 @@ class InsectRepository {
     /**
      * Agregar un insecto
      */
-    suspend fun addInsect(insect: Insect, userId: Long): Result<Long> = withContext(Dispatchers.IO) {
+    suspend fun addInsect(insect: Insect): Result<Long> = withContext(Dispatchers.IO) {
         runCatching {
-            insect.userId = userId
             val newId = insectDao.addInsect(insect)
             if (newId > 0) {
                 newId

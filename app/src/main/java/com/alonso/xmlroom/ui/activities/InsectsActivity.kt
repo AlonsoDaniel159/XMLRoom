@@ -4,29 +4,32 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.viewpager2.widget.ViewPager2
 import com.alonso.xmlroom.R
 import com.alonso.xmlroom.databinding.ActivityInsectsBinding
 import com.alonso.xmlroom.data.local.entity.Insect
-import com.alonso.xmlroom.ui.adapters.InsectAdapter
 import com.alonso.xmlroom.ui.viewmodels.InsectViewModel
 import com.alonso.xmlroom.ui.viewmodels.InsectViewModelFactory
-import com.alonso.xmlroom.utils.UiState
 import com.alonso.xmlroom.data.preferences.UserPreferences
 import com.alonso.xmlroom.data.repository.InsectRepository
+import com.alonso.xmlroom.ui.adapters.InsectPagerAdapter
 import kotlinx.coroutines.launch
 
 /**
@@ -37,9 +40,9 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
 
     private lateinit var binding: ActivityInsectsBinding
 
-    private val viewModel: InsectViewModel by viewModels { InsectViewModelFactory(InsectRepository())}
+    private lateinit var viewModel: InsectViewModel
 
-    private val adapter by lazy { InsectAdapter(this) }
+    private val pagerAdapter by lazy { InsectPagerAdapter(this) } // <-- NUEVA PROPIEDAD
 
     private var currentUserId: Long = -1
 
@@ -47,63 +50,63 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
         super.onCreate(savedInstanceState)
         binding = ActivityInsectsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(top = insets.top, bottom = insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
         setupUI()
-        setupRecyclerView()
-        setupObservers()
-        setupListeners()
+        initializeUser()
     }
 
     private fun setupUI() {
         setSupportActionBar(binding.toolbar)
-        initializeUser()
     }
 
 
     private fun initializeUser() {
         lifecycleScope.launch {
             currentUserId = UserPreferences(this@InsectsActivity).getUserId() ?: -1
+            val factory = InsectViewModelFactory(InsectRepository(), currentUserId)
+            viewModel = ViewModelProvider(this@InsectsActivity, factory)[InsectViewModel::class.java]
 
             if (currentUserId == -1L) {
                 redirectToLogin()
                 return@launch
             }
 
-            viewModel.loadInsectsForUser(currentUserId)
+            setupViewPager()
+            setupObservers()
+            setupListeners()
         }
     }
 
-    private fun setupRecyclerView() {
-        binding.recyclerView.apply {
-            val staggeredGridLayoutManager =
-                StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-            staggeredGridLayoutManager.gapStrategy =
-                StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
-
-            layoutManager = staggeredGridLayoutManager
-            adapter = this@InsectsActivity.adapter
-        }
+    private fun setupViewPager() {
+        binding.viewPager.adapter = pagerAdapter
     }
 
     /**
-     * 👁️ OBSERVADORES - Escuchan cambios en el ViewModel
+     * OBSERVADORES - Escuchan cambios en el ViewModel
      */
     private fun setupObservers() {
         // Observar lista de insectos
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                if (position == 0) {
+                    // Si estamos en la página 0, activamos el filtro "ALL" y marcamos el botón
+                    viewModel.setFilter(InsectViewModel.FilterType.ALL)
+                    binding.toggleGroup.check(R.id.btnAllInsects)
+                } else {
+                    // Si estamos en la página 1, activamos el filtro "USER" y marcamos el botón
+                    viewModel.setFilter(InsectViewModel.FilterType.USER)
+                    binding.toggleGroup.check(R.id.btnMyInsects)
+                }
+            }
+        })
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Observar estado de la lista de insectos
-                launch {
-                    viewModel.insects.collect { uiState ->
-                        when (uiState) {
-                            is UiState.Loading -> showLoading()
-                            is UiState.Success -> showData(uiState.data)
-                            is UiState.Error -> showError(uiState.message)
-                        }
-                    }
-                }
-
                 // Observar mensajes (toasts)
                 launch {
                     viewModel.message.collect { message ->
@@ -127,42 +130,22 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
                     true // Indica que el evento ha sido manejado
                 }
                 R.id.action_logout -> {
-                    // Lógica para cerrar sesión
-                    // viewModel.logout()
-                    Toast.makeText(this, "Cerrando sesión...", Toast.LENGTH_SHORT).show()
+                    showLogoutDialog()
                     true
                 }
                 else -> false
             }
         }
 
+        // Ahora los botones no llaman al ViewModel directamente, sino que cambian la página del ViewPager.
+        // El ViewPager, al cambiar de página, llamará a setFilter gracias al observer que acabamos de crear.
         binding.btnAllInsects.setOnClickListener {
-            if (! binding.btnAllInsects.isChecked) {
-                binding.btnAllInsects.isChecked = true
-                return@setOnClickListener
-            }
-
-            // Deseleccionar el otro botón
-            binding.btnMyInsects.isChecked = false
-
-            // Mostrar todos los insectos
-            viewModel.getAllInsects()
+            binding.viewPager.currentItem = 0
         }
 
-        // ✅ Botón "Mis insectos"
         binding.btnMyInsects.setOnClickListener {
-            if (!binding.btnMyInsects.isChecked) {
-                binding.btnMyInsects.isChecked = true
-                return@setOnClickListener
-            }
-
-            // Deseleccionar el otro botón
-            binding.btnAllInsects.isChecked = false
-
-            // Filtrar por usuario
-            viewModel.getInsectsByUser()
+            binding.viewPager.currentItem = 1
         }
-
     }
 
     private fun showAddDialog() {
@@ -195,6 +178,7 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
                 val url = inputUrl.text.toString()
 
                 if (name.isNotBlank()) {
+                    Log.i("userid", currentUserId.toString())
                     viewModel.addInsect(name, url, currentUserId)
                 } else {
                     Toast.makeText(this, "El nombre es obligatorio", Toast.LENGTH_SHORT).show()
@@ -205,7 +189,6 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
     }
 
     override fun onInsectLongPressed(insect: Insect) {
-        // Aquí llamas al diálogo de confirmación que ya tienes
         showDeleteConfirmation(insect)
     }
 
@@ -226,48 +209,9 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
             .show()
     }
 
-    /**
-     * Mostrar indicador de carga
-     */
-    private fun showLoading() {
-        binding.recyclerView.visibility = View.GONE
-        binding.tvEmpty.visibility = View.GONE
-        // Si tienes un ProgressBar, muéstralo aquí:
-        binding.progressBar.visibility = View.VISIBLE
-    }
-
-    /**
-     * Mostrar datos en el RecyclerView
-     */
-    private fun showData(insects: List<Insect>) {
-        binding.progressBar.visibility = View.GONE
-
-        if (insects.isEmpty()) {
-            binding.tvEmpty.visibility = View.VISIBLE
-            binding.recyclerView.visibility = View.GONE
-        } else {
-            binding.tvEmpty.visibility = View.GONE
-            binding.recyclerView.visibility = View.VISIBLE
-            adapter.submitList(insects)
-        }
-    }
-
-    /**
-     * Mostrar error
-     */
-    private fun showError(message: String) {
-        // binding.progressBar.visibility = View.GONE
-        binding.recyclerView.visibility = View.GONE
-        binding.tvEmpty.visibility = View.VISIBLE
-        binding.tvEmpty.text = message  // Mostrar el mensaje de error
-
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-    }
-
     private fun redirectToLogin() {
-        Toast.makeText(this, "No hay sesión activa", Toast.LENGTH_SHORT).show()
         val intent = Intent(this, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK  // ✅ Agregar
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK  //
         startActivity(intent)
         finish()
     }
@@ -312,11 +256,30 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
             }
 
             R.id.action_logout -> {
-                Toast.makeText(this, "Cerrando sesión...", Toast.LENGTH_SHORT).show()
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showLogoutDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Cerrar sesión")
+            .setMessage("¿Estás seguro que deseas cerrar sesión?")
+            .setPositiveButton("Sí") { _, _ ->
+                logout()
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun logout() {
+        lifecycleScope.launch {
+            // Limpiar sesión
+            UserPreferences(this@InsectsActivity).clearSession()
+            // Navegar al Login
+            redirectToLogin()
         }
     }
 }
