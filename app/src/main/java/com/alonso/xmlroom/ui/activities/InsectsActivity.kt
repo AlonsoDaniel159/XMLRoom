@@ -1,15 +1,13 @@
 package com.alonso.xmlroom.ui.activities
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.EditText
-import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -29,7 +27,9 @@ import com.alonso.xmlroom.ui.viewmodels.InsectViewModel
 import com.alonso.xmlroom.ui.viewmodels.InsectViewModelFactory
 import com.alonso.xmlroom.data.preferences.UserPreferences
 import com.alonso.xmlroom.data.repository.InsectRepository
+import com.alonso.xmlroom.databinding.DialogAddInsectBinding
 import com.alonso.xmlroom.ui.adapters.InsectPagerAdapter
+import com.alonso.xmlroom.utils.ImagePickerHelper
 import kotlinx.coroutines.launch
 
 /**
@@ -44,6 +44,12 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
 
     private val pagerAdapter by lazy { InsectPagerAdapter(this) } // <-- NUEVA PROPIEDAD
 
+    private var selectedImageUri: Uri? = null
+    private var dialogImageView: ImageView? = null
+
+    // 1. INICIALIZA EL HELPER
+    private lateinit var imagePickerHelper: ImagePickerHelper
+
     private var currentUserId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +61,12 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
             view.updatePadding(top = insets.top, bottom = insets.bottom)
             WindowInsetsCompat.CONSUMED
         }
+
+        imagePickerHelper = ImagePickerHelper(this) { uri ->
+            selectedImageUri = uri
+            dialogImageView?.setImageURI(uri)
+        }
+
         setupUI()
         initializeUser()
     }
@@ -149,39 +161,30 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
     }
 
     private fun showAddDialog() {
-        // Creamos un contenedor lineal para los dos EditText
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            val padding = 50
-            setPadding(padding, 20, padding, 10)
-        }
+        val dialogBinding = DialogAddInsectBinding.inflate(layoutInflater)
+        dialogImageView = dialogBinding.ivInsectImage // Guarda referencia a la ImageView del diálogo
 
-        val inputName = EditText(this).apply {
-            hint = "Nombre del insecto"
-            setSingleLine()
-        }
+        // Resetea la imagen al abrir un nuevo diálogo
+        selectedImageUri = null
+        dialogImageView?.setImageResource(android.R.drawable.ic_menu_camera)
 
-        val inputUrl = EditText(this).apply {
-            hint = "URL de la imagen (Glide)"
-            setSingleLine()
+        // Al hacer clic, usa el helper
+        dialogBinding.ivInsectImage.setOnClickListener {
+            imagePickerHelper.selectImage()
         }
-
-        container.addView(inputName)
-        container.addView(inputUrl)
 
         AlertDialog.Builder(this)
-            .setTitle("Nuevo Insecto")
-            .setMessage("Ingresa los datos del insecto")
-            .setView(container) // Seteamos el contenedor que tiene ambos
-            .setPositiveButton("Agregar") { _, _ ->
-                val name = inputName.text.toString()
-                val url = inputUrl.text.toString()
+            .setTitle("Añadir Insecto")
+            .setView(dialogBinding.root)
+            .setPositiveButton("Añadir") { _, _ ->
+                val name = dialogBinding.etInsectName.text.toString().trim()
+                val imageUrl = selectedImageUri?.toString() ?: ""
 
                 if (name.isNotBlank()) {
-                    Log.i("userid", currentUserId.toString())
-                    viewModel.addInsect(name, url, currentUserId)
+                    // Crea el insecto con el nombre y la URI de la imagen
+                    viewModel.addInsect(name, imageUrl, currentUserId)
                 } else {
-                    Toast.makeText(this, "El nombre es obligatorio", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancelar", null)
@@ -282,4 +285,6 @@ class InsectsActivity : AppCompatActivity(), InsectActions {
             redirectToLogin()
         }
     }
+
+
 }
